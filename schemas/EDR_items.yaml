@@ -174,13 +174,50 @@ paths:
         - $ref: '#/components/parameters/time'
       responses:
         '200':
-          description: Data ranges required to construct valid queries for the choosen data collection
+          description: "The response is a document consisting of features in the collection.The features included in the response are determined by the server based on the query parameters of the request. To support access to larger collections without overloading the client, the API supports paged access with links to the next page, if more features are selected that the page size."
           content:
-            application/json:
+            application/geo+json:
               schema:
-                $ref: '#/components/schemas/CoverageJSON'
-            application/x-netcdf: {}
-            text/xml: {}
+                $ref: '#/components/schemas/featureCollectionGeoJSON'
+              example:
+                type: FeatureCollection
+                links:
+                  - href: 'http://data.example.com/collections/buildings/items.json'
+                    rel: self
+                    type: application/geo+json
+                    title: this document
+                  - href: 'http://data.example.com/collections/buildings/items.html'
+                    rel: alternate
+                    type: text/html
+                    title: this document as HTML
+                  - href: 'http://data.example.com/collections/buildings/items.json&offset=10&limit=2'
+                    rel: next
+                    type: application/geo+json
+                    title: next page
+                timeStamp: '2018-04-03T14:52:23Z'
+                numberMatched: 123
+                numberReturned: 2
+                features:
+                  - type: Feature
+                    id: '123'
+                    geometry:
+                      type: Polygon
+                      coordinates:
+                        - ...
+                    properties:
+                      function: residential
+                      floors: '2'
+                      lastUpdate: '2015-08-01T12:34:56Z'
+                  - type: Feature
+                    id: '132'
+                    geometry:
+                      type: Polygon
+                      coordinates:
+                        - ...
+                    properties:
+                      function: public use
+                      floors: '10'
+                      lastUpdate: '2013-12-03T10:15:37Z'
         '202':
           description: Data request still being processed
         '308':
@@ -228,13 +265,38 @@ paths:
             type: string
       responses:
         '200':
-          description: Data ranges required to construct valid queries for the choosen data collection
+          description: "fetch the feature with id `featureId` in the feature collection with id `collectionId`"
           content:
-            application/json:
+            application/geo+json:
               schema:
-                $ref: '#/components/schemas/CoverageJSON'
-            application/x-netcdf: {}
-            text/xml: {}
+                $ref: '#/components/schemas/featureGeoJSON'
+              example:
+                type: Feature
+                links:
+                  - href: 'http://data.example.com/id/building/123'
+                    rel: canonical
+                    title: canonical URI of the building
+                  - href: 'http://data.example.com/collections/buildings/items/123.json'
+                    rel: self
+                    type: application/geo+json
+                    title: this document
+                  - href: 'http://data.example.com/collections/buildings/items/123.html'
+                    rel: alternate
+                    type: text/html
+                    title: this document as HTML
+                  - href: 'http://data.example.com/collections/buildings'
+                    rel: collection
+                    type: application/geo+json
+                    title: the collection document
+                id: '123'
+                geometry:
+                  type: Polygon
+                  coordinates:
+                    - ...
+                properties:
+                  function: residential
+                  floors: '2'
+                  lastUpdate: '2015-08-01T12:34:56Z'
         '202':
           description: Data request still being processed
         '308':
@@ -1338,6 +1400,283 @@ components:
         wkt:
           type: string
           example: 'GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS 84",6378137,298.257223563,AUTHORITY["EPSG","7030"]],AUTHORITY["EPSG","6326"]],PRIMEM["Greenwich",0,AUTHORITY["EPSG","8901"]],UNIT["degree",0.01745329251994328,AUTHORITY["EPSG","9122"]],AUTHORITY["EPSG","4326"]]'
+    featureCollectionGeoJSON:
+      type: object
+      required:
+        - type
+        - features
+      properties:
+        type:
+          type: string
+          enum:
+            - FeatureCollection
+        features:
+          type: array
+          items:
+            $ref: "#/components/schemas/featureGeoJSON"
+        links:
+          type: array
+          items:
+            $ref: "#/components/schemas/link"
+        timeStamp:
+          $ref: "#/components/schemas/timeStamp"
+        numberMatched:
+          $ref: "#/components/schemas/numberMatched"
+        numberReturned:
+          $ref: "#/components/schemas/numberReturned"
+    featureGeoJSON:
+      type: object
+      required:
+        - type
+        - geometry
+        - properties
+      properties:
+        type:
+          type: string
+          enum:
+            - Feature
+        geometry:
+          $ref: "#/components/schemas/geometryGeoJSON"
+        properties:
+          type: object
+          nullable: true
+        id:
+          oneOf:
+            - type: string
+            - type: integer
+        links:
+          type: array
+          items:
+            $ref: "#/components/schemas/link"
+    geometryGeoJSON:
+      oneOf:
+      - $ref: "#/components/schemas/pointGeoJSON"
+      - $ref: "#/components/schemas/multipointGeoJSON"
+      - $ref: "#/components/schemas/linestringGeoJSON"
+      - $ref: "#/components/schemas/multilinestringGeoJSON"
+      - $ref: "#/components/schemas/polygonGeoJSON"
+      - $ref: "#/components/schemas/multipolygonGeoJSON"
+      - $ref: "#/components/schemas/geometrycollectionGeoJSON"
+    geometrycollectionGeoJSON:
+      type: object
+      required:
+        - type
+        - geometries
+      properties:
+        type:
+          type: string
+          enum:
+            - GeometryCollection
+        geometries:
+          type: array
+          items:
+            $ref: "#/components/schemas/geometryGeoJSON"
+    landingPage:
+      type: object
+      required:
+        - links
+      properties:
+        title:
+          type: string
+          example: Buildings in Bonn
+        description:
+          type: string
+          example: Access to data about buildings in the city of Bonn via a Web API that conforms to the OGC API Features specification.
+        links:
+          type: array
+          items:
+            $ref: "#/components/schemas/link"
+    linestringGeoJSON:
+      type: object
+      required:
+        - type
+        - coordinates
+      properties:
+        type:
+          type: string
+          enum:
+            - LineString
+        coordinates:
+          type: array
+          minItems: 2
+          items:
+            type: array
+            minItems: 2
+            items:
+              type: number
+    multilinestringGeoJSON:
+      type: object
+      required:
+        - type
+        - coordinates
+      properties:
+        type:
+          type: string
+          enum:
+            - MultiLineString
+        coordinates:
+          type: array
+          items:
+            type: array
+            minItems: 2
+            items:
+              type: array
+              minItems: 2
+              items:
+                type: number
+    multipointGeoJSON:
+      type: object
+      required:
+        - type
+        - coordinates
+      properties:
+        type:
+          type: string
+          enum:
+            - MultiPoint
+        coordinates:
+          type: array
+          items:
+            type: array
+            minItems: 2
+            items:
+              type: number
+    multipolygonGeoJSON:
+      type: object
+      required:
+        - type
+        - coordinates
+      properties:
+        type:
+          type: string
+          enum:
+            - MultiPolygon
+        coordinates:
+          type: array
+          items:
+            type: array
+            items:
+              type: array
+              minItems: 4
+              items:
+                type: array
+                minItems: 2
+                items:
+                  type: number
+    numberMatched:
+      description: |-
+        The number of features of the feature type that match the selection
+        parameters like `bbox`.
+      type: integer
+      minimum: 0
+      example: 127
+    numberReturned:
+      description: |-
+        The number of features in the feature collection.
+
+        A server may omit this information in a response, if the information
+        about the number of features is not known or difficult to compute.
+
+        If the value is provided, the value shall be identical to the number
+        of items in the "features" array.
+      type: integer
+      minimum: 0
+      example: 10
+    pointGeoJSON:
+      type: object
+      required:
+        - type
+        - coordinates
+        - properties
+      properties:
+        type:
+          type: string
+          enum:
+            - Point
+        coordinates:
+          type: array
+          minItems: 2
+          items:
+            type: number
+        properties: 
+          $ref: "#/components/schemas/properties"
+    polygonGeoJSON:
+      type: object
+      required:
+        - type
+        - coordinates
+      properties:
+        type:
+          type: string
+          enum:
+            - Polygon
+        coordinates:
+          type: array
+          items:
+            type: array
+            minItems: 4
+            items:
+              type: array
+              minItems: 2
+              items:
+                type: number
+    timeStamp:
+      description: This property indicates the time and date when the response was generated.
+      type: string
+      format: date-time
+      example: '2017-08-17T08:05:32Z'
+    properties:
+      type: object
+      title: The Properties Schema
+      description: An explanation about the purpose of this instance.
+      default: {}
+      example:
+      -   datetime: 2018-02-12T00:00:00Z/2018-03-18T12:31:12Z
+          label: Something like a site name to use on a link
+          parametername:
+          - param object 1
+          - param object 2
+          uri: https://feature_identifier
+      required:
+        - datetime
+        - parametername
+        - label
+        - uri
+      properties:
+        datetime:
+            type: string
+            title: The Datetime Schema
+            description: An explanation about the purpose of this instance.
+            default: ''
+            example:
+            - 2018-02-12T00:00:00Z/2018-03-18T12:31:12Z
+        parametername:
+            type: array
+            title: The Parametername Schema
+            description: An explanation about the purpose of this instance.
+            default: []
+            items:
+                type: string
+                title: The Items Schema
+                description: An explanation about the purpose of this instance.
+                default: ''
+                example:
+                - param object 1
+                - param object 2
+        label:
+            type: string
+            title: The Label Schema
+            description: An explanation about the purpose of this instance.
+            default: ''
+            example:
+            - Something like a site name to use on a link
+        uri:
+            type: string
+            title: The Uri Schema
+            description: An explanation about the purpose of this instance.
+            default: ''
+            example:
+            - https://feature_identifier
   parameters:
     bbox:
       name: bbox
