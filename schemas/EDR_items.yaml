@@ -1598,7 +1598,7 @@ components:
           items:
             type: number
         properties: 
-          $ref: "#/components/schemas/properties"
+          $ref: "#/components/schemas/EDRProperties"
     polygonGeoJSON:
       type: object
       required:
@@ -1631,11 +1631,11 @@ components:
       default: {}
       example:
       - datetime: 2018-02-12T00:00:00Z/2018-03-18T12:31:12Z
-          label: Monitoring site name
-          parametername:
-            - velocity
-            - temperature
-          uri: https://feature_identifier
+        label: Monitoring site name
+        parametername:
+          - velocity
+          - temperature
+        uri: https://feature_identifier
       required:
         - datetime
         - parametername
