@@ -178,7 +178,7 @@ paths:
           content:
             application/geo+json:
               schema:
-                $ref: '#/components/schemas/featureCollectionGeoJSON'
+                $ref: '#/components/schemas/EDRfeatureCollectionGeoJSON'
               example:
                 type: FeatureCollection
                 links:
@@ -1400,7 +1400,7 @@ components:
         wkt:
           type: string
           example: 'GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS 84",6378137,298.257223563,AUTHORITY["EPSG","7030"]],AUTHORITY["EPSG","6326"]],PRIMEM["Greenwich",0,AUTHORITY["EPSG","8901"]],UNIT["degree",0.01745329251994328,AUTHORITY["EPSG","9122"]],AUTHORITY["EPSG","4326"]]'
-    featureCollectionGeoJSON:
+    EDRfeatureCollectionGeoJSON:
       type: object
       required:
         - type
@@ -1438,8 +1438,7 @@ components:
         geometry:
           $ref: "#/components/schemas/geometryGeoJSON"
         properties:
-          type: object
-          nullable: true
+          $ref: "#/components/schemas/EDRProperties"
         id:
           oneOf:
             - type: string
@@ -1625,17 +1624,17 @@ components:
       type: string
       format: date-time
       example: '2017-08-17T08:05:32Z'
-    properties:
+    EDRProperties:
       type: object
-      title: The Properties Schema
-      description: An explanation about the purpose of this instance.
+      title: EDR GeoJSON Properties 
+      description: Properties to describe existing EDR features -- may be real-world or virtual sampling features.
       default: {}
       example:
-      -   datetime: 2018-02-12T00:00:00Z/2018-03-18T12:31:12Z
-          label: Something like a site name to use on a link
+      - datetime: 2018-02-12T00:00:00Z/2018-03-18T12:31:12Z
+          label: Monitoring site name
           parametername:
-          - param object 1
-          - param object 2
+            - velocity
+            - temperature
           uri: https://feature_identifier
       required:
         - datetime
@@ -1645,38 +1644,38 @@ components:
       properties:
         datetime:
             type: string
-            title: The Datetime Schema
-            description: An explanation about the purpose of this instance.
+            title: Date/time Domain
+            description: Either a date-time or a period string that adheres to RFC 3339. Indicates the time instant or period for whidh data are available from the EDR feature.
             default: ''
             example:
-            - 2018-02-12T00:00:00Z/2018-03-18T12:31:12Z
+              - 2018-02-12T00:00:00Z/2018-03-18T12:31:12Z
         parametername:
             type: array
-            title: The Parametername Schema
-            description: An explanation about the purpose of this instance.
+            title: Available Parameters
+            description: Unique IDs of available parameters, this is the value used for querying the data and corresponds to an ID in the parameter metadata of the collection.
             default: []
             items:
                 type: string
-                title: The Items Schema
-                description: An explanation about the purpose of this instance.
+                title: Parameter ID list
+                description: Each entry should contain one parameter ID that can be used to query against the feature.
                 default: ''
                 example:
-                - param object 1
-                - param object 2
+                  - velocity
+                  - temperature
         label:
             type: string
-            title: The Label Schema
-            description: An explanation about the purpose of this instance.
+            title: Label
+            description: A label such as a site name or other text to use on a link.
             default: ''
             example:
-            - Something like a site name to use on a link
+              - Site A
         uri:
             type: string
-            title: The Uri Schema
-            description: An explanation about the purpose of this instance.
+            title: A URI identifying the feature. 
+            description: An identifier uri for the feature. May be a uri for a real-world sampling feature of a uri to retrieve the particular feature of the EDR service instance.
             default: ''
             example:
-            - https://feature_identifier
+              - https://feature_identifier
   parameters:
     bbox:
       name: bbox
